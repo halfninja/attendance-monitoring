@@ -3,17 +3,22 @@ const path = require('path');
 const { getDeviceList } = require('usb');
 const fs = require('fs-extra');
 
+// for development
 require('electron-reload')(__dirname, {
     electron: path.join(__dirname, 'node_modules', '.bin', 'electron')
 });
 
+// Allow only one instance of the app
 let isSingleInstance = app.requestSingleInstanceLock()
 if (!isSingleInstance) {
     app.quit()
 };
 
+let mainWindow;
+
 const loadMainWindow = () => {
-    const mainWindow = new BrowserWindow({
+    // create the main window
+    mainWindow = new BrowserWindow({
         autoHideMenuBar: true,
         resizable: true,
         webPreferences: {
@@ -24,19 +29,13 @@ const loadMainWindow = () => {
         },
     });
     mainWindow.loadFile(path.join(__dirname, '/src/index.html'));
-    mainWindow.webContents.openDevTools();
-    ipcMain.on('get-usb-devices', (event, arg) => {
-        const devices = getDeviceList();
-        event.reply('get-usb-devices-reply', devices);
-    });
-    ipcMain.on('data', (event, arg) => {
-        fs.writeFileSync(path.join(__dirname, '/data.csv'), arg, (err) => {
-            if (err) throw err;
-        });
-        console.log(arg);
-    });
-    ipcMain.on('debug', (event, arg) => {
-        console.log('DEBUG: ', arg);
+    // for development
+    mainWindow.webContents.openDevTools(); 
+
+    ipcMain.on('save-and-close', async (event, arg) => {
+        await fs.writeFile(path.join(__dirname, '/data.csv'), arg);
+        // force destroy the window to prevent the "onbeforeunload" event from being emitted
+        mainWindow.destroy();
     });
 }
 
@@ -45,7 +44,7 @@ app.on('ready', async () => {
     loadMainWindow();
     app.setAsDefaultProtocolClient('attendance-monitoring');
 });
-app.on('window-all-closed', () => {
+app.on('window-all-closed', (e) => {
     if (process.platform !== 'darwin') {
         app.quit();
     }
