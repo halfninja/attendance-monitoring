@@ -21,6 +21,15 @@ port.on('error', (err) => {
 contextBridge.exposeInMainWorld('electron', {
     getDeviceList: getDeviceList,
     formattedData: () => {return formattedData;},
+    genFilePath: () => {
+        ipcRenderer.send('genFilePath');
+        const promise = new Promise((resolve, reject) => {
+            ipcRenderer.on('genFilePath-reply', (event, args) => {
+                resolve(args)
+            });
+        });
+        return promise;
+    },
     saveAndClose: () => {
         // format the json data to csv data
         let csv = Papa.unparse(formattedData, { quotes: true });

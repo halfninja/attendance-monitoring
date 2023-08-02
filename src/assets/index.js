@@ -1,9 +1,10 @@
-const renderAttendanceView = () => {
+const renderAttendanceView = async () => {
+    let filePath = await electron.genFilePath();
     const main = document.querySelector('#main');
     main.innerHTML = `
         <div class="attendance-view">
             <h2>Attendance Monitoring for ${localStorage.getItem('location')}</h2>
-            <h2>Data stored in **</h2>
+            <h2>Data stored in ${filePath}</h2>
             <div class="attendance-view_columns">
             <div id="attendance-view_timestamp"></div>
             <div id="attendance-view_universityId"></div>
@@ -37,7 +38,7 @@ window.onbeforeunload = () => {
     electron.saveAndClose();
 }
 
-const locationSubmit = () => {
+const locationSubmit = async () => {
     const locationElement = document.getElementById('locationInput');
     if (locationElement.value == '') {
         locationElement.animate({

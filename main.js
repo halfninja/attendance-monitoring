@@ -5,6 +5,8 @@ const fs = require('fs-extra');
 const { v4: uuidv4 } = require('uuid');
 const { saveLocation } = require('./config.json')
 
+let filePath;
+
 // for development
 require('electron-reload')(__dirname, {
     electron: path.join(__dirname, 'node_modules', '.bin', 'electron')
@@ -16,8 +18,24 @@ if (!isSingleInstance) {
     app.quit()
 };
 
-let mainWindow;
+const generateFilePath = async () => {
+    const date = new Date();
+    let day = date.getDate();
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    let location;
+    
+    await mainWindow.webContents
+    .executeJavaScript('localStorage.getItem("location");', true)
+    .then(result => {location = result;});
+    let fileName = `${day}-${month}-${year}-${hours}-${minutes}-${location}-${uuidv4()}.csv`;
+    let filePath = path.join(saveLocation, fileName);
+    return filePath;
+}
 
+let mainWindow;
 const loadMainWindow = () => {
     // create the main window
     mainWindow = new BrowserWindow({
@@ -35,34 +53,18 @@ const loadMainWindow = () => {
     mainWindow.webContents.openDevTools(); 
 
     ipcMain.on('save-and-close', async (event, arg) => {
-        const date = new Date();
-        let day = date.getDate();
-        let month = date.getMonth() + 1;
-        let year = date.getFullYear();
-        let hours = date.getHours();
-        let minutes = date.getMinutes();
-        let location;
-        
+        let filePath;
         await mainWindow.webContents
-        .executeJavaScript('localStorage.getItem("location");', true)
-        .then(result => {location = result;});
-
-        const generateFilePath = () => {
-            let fileName = `${day}-${month}-${year}-${hours}-${minutes}-${location}-${uuidv4()}.csv`;
-            let filePath = path.join(saveLocation, fileName);
-            if (fs.existsSync(filePath)) {
-                filePath = generateFilePath()
-            }
-            return filePath;
-        }
-        
-        let filePath = generateFilePath();
-        
-        console.log(filePath);
-        await fs.writeFile(filePath, arg);
+        .executeJavaScript('localStorage.getItem("filePath");', true)
+        .then(result => {filePath = result;});
+        fs.writeFile(filePath, arg);
         // force destroy the window to prevent the "onbeforeunload" event from being emitted
         mainWindow.destroy();
     });
+    ipcMain.on('genFilePath', async (event) => {
+        filePath = await generateFilePath()
+        event.reply('genFilePath-reply', filePath);
+    })
 }
 
 
@@ -70,7 +72,7 @@ app.on('ready', async () => {
     loadMainWindow();
     app.setAsDefaultProtocolClient('attendance-monitoring');
 });
-app.on('window-all-closed', (e) => {
+app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit();
     }
