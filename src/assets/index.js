@@ -36,3 +36,18 @@ window.onbeforeunload = () => {
     // ask the renderer process to save the data
     electron.saveAndClose();
 }
+
+const locationSubmit = () => {
+    const locationElement = document.getElementById('locationInput');
+    if (locationElement.value == '') {
+        locationElement.animate({
+            translate: ['0px', '20px', '-20px', '0px'],
+            easing: ['ease-in-out'],
+        }, 500);
+        document.getElementById('inputError').innerText = 'Location must be at least one character.';
+        return;
+    }
+        
+    localStorage.setItem('location', locationElement.value); 
+    renderAttendanceView();
+}

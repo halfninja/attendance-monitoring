@@ -13,6 +13,9 @@
     width: 100%;
     margin: 5px 0;
 }
+#inputError {
+    color: #f14f4f;
+}
 
 .attendance-view_columns {
     display: flex;

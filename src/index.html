@@ -8,8 +8,9 @@
 </head>
 <body>
     <div id="main">
-        <form id="locationForm" onsubmit="event.preventDefault(); localStorage.setItem('location', document.getElementById('locationInput').value); renderAttendanceView();">
+        <form id="locationForm" onsubmit="event.preventDefault(); locationSubmit()">
             <input type="text" id="locationInput" placeholder="Enter Location...">
+            <p id="inputError"></p>
             <input type="submit" value="Submit">
         </form>
     </div>
