@@ -5,7 +5,7 @@
   "main": "main.js",
   "type": "commonjs",
   "scripts": {
-    "start": "electron .",
+    "start": "electron-forge start",
     "dist": "electron-builder",
     "package": "electron-forge package",
     "make": "electron-forge make",
@@ -14,8 +14,6 @@
   "author": "Saturn Maoudis",
   "license": "GPL-3.0",
   "dependencies": {
-    "electron": "^25.3.2",
-    "electron-reload": "^2.0.0-alpha.1",
     "fs-extra": "^11.1.1",
     "papaparse": "^5.4.1",
     "serialport": "^11.0.1",
@@ -23,6 +21,8 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "electron": "^25.3.2",
+    "electron-reload": "^2.0.0-alpha.1",
     "@electron-forge/cli": "^6.2.1",
     "@electron-forge/maker-zip": "^6.2.1",
     "electron-builder": "^24.6.3"
