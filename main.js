@@ -7,11 +7,6 @@ const { saveLocation } = require('./config.json')
 
 let filePath;
 
-// for development
-require('electron-reload')(__dirname, {
-    electron: path.join(__dirname, 'node_modules', '.bin', 'electron')
-});
-
 // Allow only one instance of the app
 let isSingleInstance = app.requestSingleInstanceLock()
 if (!isSingleInstance) {
