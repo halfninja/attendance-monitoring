@@ -47,7 +47,10 @@ const locationSubmit = () => {
         document.getElementById('inputError').innerText = 'Location must be at least one character.';
         return;
     }
-        
     localStorage.setItem('location', locationElement.value); 
     renderAttendanceView();
+}
+
+const displayError = (message) => {
+    console.log(message);
 }

@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { getDeviceList } = require('usb');
 const fs = require('fs-extra');
+const { v4: uuidv4 } = require('uuid');
+const { saveLocation } = require('./config.json')
 
 // for development
 require('electron-reload')(__dirname, {
@@ -33,7 +35,31 @@ const loadMainWindow = () => {
     mainWindow.webContents.openDevTools(); 
 
     ipcMain.on('save-and-close', async (event, arg) => {
-        await fs.writeFile(path.join(__dirname, '/data.csv'), arg);
+        const date = new Date();
+        let day = date.getDate();
+        let month = date.getMonth() + 1;
+        let year = date.getFullYear();
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        let location;
+        
+        await mainWindow.webContents
+        .executeJavaScript('localStorage.getItem("location");', true)
+        .then(result => {location = result;});
+
+        const generateFilePath = () => {
+            let fileName = `${day}-${month}-${year}-${hours}-${minutes}-${location}-${uuidv4()}.csv`;
+            let filePath = path.join(saveLocation, fileName);
+            if (fs.existsSync(filePath)) {
+                filePath = generateFilePath()
+            }
+            return filePath;
+        }
+        
+        let filePath = generateFilePath();
+        
+        console.log(filePath);
+        await fs.writeFile(filePath, arg);
         // force destroy the window to prevent the "onbeforeunload" event from being emitted
         mainWindow.destroy();
     });

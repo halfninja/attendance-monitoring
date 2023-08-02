@@ -38,10 +38,11 @@ port.on('data', (data) => {
     // join the two json halves and push to formattedData array
     if (dataPair.length === 2) {
         let joinedData = dataPair[0] + dataPair[1];
-        let timestamp = new Date().toLocaleString();
-        joinedData = JSON.parse(joinedData);
-        joinedData.timestamp = timestamp;
         dataPair = [];
+        joinedData = JSON.parse(joinedData);
+        // !weird bug here
+        // if (joinedData.error == '') throw alert('error');
+        joinedData.timestamp = new Date().toLocaleString();
         formattedData.push(joinedData);
     }
     if (formattedData.length > 1) {
@@ -56,4 +57,4 @@ port.on('data', (data) => {
         //     }
         // }
     }
-})
+});
