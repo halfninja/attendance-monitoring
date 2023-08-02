@@ -39,31 +39,28 @@ contextBridge.exposeInMainWorld('electron', {
 })
 
 port.on('data', (data) => {
+    data = data.toString();
     if (localStorage.getItem('location') == null) return;
-    // place the two json halves in the dataPair array
-    if (data.toString().includes('{') || data.toString().includes('}')) {
-        dataPair.push(data.toString());
-    }
+    if (!data.includes('{') && !data.includes('}')) return;
+    // prevents weird error that drove me insane :)
+    if (data.includes('SW_CPU_RESET')) return dataPair = [];
+
+    dataPair.push(data);
+
     // join the two json halves and push to formattedData array
     if (dataPair.length === 2) {
         let joinedData = dataPair[0] + dataPair[1];
         dataPair = [];
         joinedData = JSON.parse(joinedData);
-        // !weird bug here
-        // if (joinedData.error == '') throw alert('error');
+        // return on error
+        if (joinedData.error !== '') return alert(`The last card scanned failed with the following reason:\n${joinedData.error} \n\n please try again.`);
         joinedData.timestamp = new Date().toLocaleString();
         formattedData.push(joinedData);
     }
     if (formattedData.length > 1) {
-        // check if the current card scan is the same as the last card scanned (more efficient but may let duplicate cards scans through)
+        // check if the current card scan is the same as the last card scanned (more efficient than comparing to all the other cards but may let some duplicate cards scans through)
         if (formattedData[formattedData.length - 1].serialNumber == formattedData[formattedData.length - 2].serialNumber && formattedData[formattedData.length - 1].universityNumber == formattedData[formattedData.length - 2].universityNumber) {
             formattedData.pop();
         }
-        // check current card against all previous cards (slower but wont let duplicate cards though)
-        // for (let i = 0; i < formattedData.length; i++) {
-        //     if (formattedData[i].serialNumber == formattedData[formattedData.length - 1].serialNumber && formattedData[i].universityNumber == formattedData[formattedData.length - 1].universityNumber) {
-        //         formattedData.pop();
-        //     }
-        // }
     }
 });
