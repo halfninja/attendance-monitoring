@@ -53,10 +53,8 @@ const loadMainWindow = () => {
     mainWindow.webContents.openDevTools(); 
 
     ipcMain.on('save-and-close', async (event, arg) => {
-        let filePath;
-        await mainWindow.webContents
-        .executeJavaScript('localStorage.getItem("filePath");', true)
-        .then(result => {filePath = result;});
+        // prevent empty files from being created
+        if (arg == '') return mainWindow.destroy();
         fs.writeFile(filePath, arg);
         // force destroy the window to prevent the "onbeforeunload" event from being emitted
         mainWindow.destroy();
