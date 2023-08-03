@@ -3,18 +3,18 @@ const renderAttendanceView = async () => {
     const main = document.querySelector('#main');
     main.innerHTML = `
         <div class="attendance-view">
-            <h2>Attendance Monitoring for ${localStorage.getItem('location')}</h2>
-            <h2>Data stored in ${filePath}</h2>
+            <h1>Attendance Monitoring for ${sessionStorage.getItem('location')}</h1>
+            <h1>Data stored in ${filePath}</h1>
             <div class="attendance-view_columns">
-            <div id="attendance-view_timestamp"></div>
-            <div id="attendance-view_universityId"></div>
-            <div id="attendance-view_issueNumber"></div>
-            <div id="attendance-view_serialNumber"></div>
+            <div id="attendance-view_timestamp"><p>Timestamp</p></div>
+            <div id="attendance-view_universityId"><p>University ID</p></div>
+            <div id="attendance-view_issueNumber"><p>Issue Number</p></div>
+            <div id="attendance-view_serialNumber"><p>Serial Number</p></div>
             </div>
     `;
     // every 500ms check if the data has changed and update if it has
     setInterval(() => {
-        if (document.getElementById('attendance-view_timestamp').childElementCount !== electron.formattedData().length) {
+        if (document.getElementById('attendance-view_timestamp').childElementCount - 1 !== electron.formattedData().length) {
             const timestampElement = document.createElement('p');
             timestampElement.innerHTML = electron.formattedData()[electron.formattedData().length - 1].timestamp;
             document.getElementById('attendance-view_timestamp').appendChild(timestampElement);
@@ -48,10 +48,12 @@ const locationSubmit = async () => {
         document.getElementById('inputError').innerText = 'Location must be at least one character.';
         return;
     }
-    localStorage.setItem('location', locationElement.value); 
+    sessionStorage.setItem('location', locationElement.value); 
     renderAttendanceView();
 }
 
 const displayError = (message) => {
     console.log(message);
 }
+
+document.getElementById('locationInput').focus();

@@ -1,6 +1,6 @@
-/* * {
-    outline: red 1px solid;
-} */
+body {
+    font-family: Indie Flower;
+}
 
 #locationForm {
     top: 50%;
@@ -8,21 +8,52 @@
     transform: translate(-50%, -50%);
     position: absolute;
     width: fit-content;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: end;
 }
-#locationForm input {
-    width: 100%;
-    margin: 5px 0;
+.locationFormInput {
+    width: 99%;
+    border: 2px solid #000;
+    transition: scale 0.2s;
+}
+.locationFormInput:focus-visible {
+    outline: none;
+    scale: 1.1;
+}
+.submitButton {
+    background-color: transparent;
+    border: 2px solid #000;
+    box-shadow: 4px 4px 0px 1px rgba(0, 0, 0, 0.25);
+    width: 40%;
+    transition: box-shadow 0.2s;
+}
+.submitButton:hover {
+    box-shadow: 6px 6px 0px 1px rgba(0, 0, 0, 0.25);
 }
 #inputError {
     color: #f14f4f;
 }
 
+.attendance-view {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    right: 40px;
+    bottom: 10px;
+}
+.attendance-view h1 {
+    font-size: 1rem;
+}
 .attendance-view_columns {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    align-items: center;
+    align-items: start;
     margin: 10px 0;
-    width: 90%;
-    height: 60%;
+    width: 100%;
+    height: 70%;
+    overflow-y: scroll;
+    padding-right: 10px;
 }

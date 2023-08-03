@@ -3,7 +3,7 @@ const { getDeviceList } = require('usb');
 const { SerialPort } = require('serialport');
 const Papa = require('papaparse');
 
-localStorage.clear();
+sessionStorage.clear();
 
 let dataPair = [];
 let formattedData = [];
@@ -40,7 +40,7 @@ contextBridge.exposeInMainWorld('electron', {
 
 port.on('data', (data) => {
     data = data.toString();
-    if (localStorage.getItem('location') == null) return;
+    if (sessionStorage.getItem('location') == null) return;
     if (!data.includes('{') && !data.includes('}')) return;
     // prevents weird error that drove me insane :)
     if (data.includes('SW_CPU_RESET')) return dataPair = [];
@@ -53,7 +53,7 @@ port.on('data', (data) => {
         dataPair = [];
         joinedData = JSON.parse(joinedData);
         // return on error
-        if (joinedData.error !== '') return alert(`The last card scanned failed with the following reason:\n${joinedData.error} \n\n please try again.`);
+        if (joinedData.error !== '') return alert(`The last card scanned failed with the following reason:\n${joinedData.error} \n\nPlease try again.`);
         joinedData.timestamp = new Date().toLocaleString();
         formattedData.push(joinedData);
     }

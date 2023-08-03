@@ -23,7 +23,7 @@ const generateFilePath = async () => {
     let location;
     
     await mainWindow.webContents
-    .executeJavaScript('localStorage.getItem("location");', true)
+    .executeJavaScript('sessionStorage.getItem("location");', true)
     .then(result => {location = result;});
     let fileName = `${day}-${month}-${year}-${hours}-${minutes}-${location}-${uuidv4()}.csv`;
     let filePath = path.join(saveLocation, fileName);
@@ -36,6 +36,12 @@ const loadMainWindow = () => {
     mainWindow = new BrowserWindow({
         autoHideMenuBar: true,
         resizable: true,
+        width: 800,
+        height: 600,
+        minHeight: 500,
+        minWidth: 700,
+        maxWidth: 900,
+        maxHeight: 700,
         webPreferences: {
             contextIsolation: true,
             nodeIntegration: true,
@@ -44,8 +50,6 @@ const loadMainWindow = () => {
         },
     });
     mainWindow.loadFile(path.join(__dirname, '/src/index.html'));
-    // for development
-    mainWindow.webContents.openDevTools(); 
 
     ipcMain.on('save-and-close', async (event, arg) => {
         // prevent empty files from being created
