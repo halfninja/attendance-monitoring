@@ -1,7 +1,6 @@
 const renderAttendanceView = async () => {
     let filePath = await electron.genFilePath();
-    const main = document.querySelector('#main');
-    main.innerHTML = `
+    document.querySelector('#main').innerHTML = `
         <div class="attendance-view">
             <h1>Attendance Monitoring for ${sessionStorage.getItem('location')}</h1>
             <h1>Data stored in ${filePath}</h1>
@@ -10,7 +9,7 @@ const renderAttendanceView = async () => {
             <div id="attendance-view_universityId"><p>University ID</p></div>
             <div id="attendance-view_issueNumber"><p>Issue Number</p></div>
             <div id="attendance-view_serialNumber"><p>Serial Number</p></div>
-            </div>
+        </div>
     `;
     // every 500ms check if the data has changed and update if it has
     setInterval(() => {
@@ -29,14 +28,7 @@ const renderAttendanceView = async () => {
             document.getElementById('attendance-view_serialNumber').appendChild(serialNumberElement);
         }
     }, 500);
-}
-
-window.onbeforeunload = () => {
-    // prevent window from closing
-    event.returnValue = false;
-    // ask the renderer process to save the data
-    electron.saveAndClose();
-}
+};
 
 const locationSubmit = async () => {
     const locationElement = document.getElementById('locationInput');
@@ -52,8 +44,9 @@ const locationSubmit = async () => {
     renderAttendanceView();
 }
 
-const displayError = (message) => {
-    console.log(message);
+window.onbeforeunload = () => {
+    // prevent window from closing
+    event.returnValue = false;
+    // ask the renderer process to save the data
+    electron.saveAndClose();
 }
-
-document.getElementById('locationInput').focus();

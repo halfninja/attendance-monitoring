@@ -8,11 +8,10 @@
 </head>
 <body>
     <div id="main">
-        <form id="locationForm" onsubmit="event.preventDefault(); locationSubmit()">
-                <input class="locationFormInput" type="text" id="locationInput" placeholder="Your Location...">
-            <p id="inputError"></p>
-            <input class="submitButton" type="submit" value="Continue">
-        </form>
+        <select id="usbSelector">
+            <option value="">>Select a device</option>
+        </select>
+        <button id="usbSelectorButton">Continue</button>
     </div>
     <script src="./assets/index.js"></script>
 </body>

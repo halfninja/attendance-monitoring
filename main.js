@@ -1,6 +1,5 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const { getDeviceList } = require('usb');
 const fs = require('fs-extra');
 const { v4: uuidv4 } = require('uuid');
 const { saveLocation } = require('./config.json')
