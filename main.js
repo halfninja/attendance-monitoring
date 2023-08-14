@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs-extra');
 const { v4: uuidv4 } = require('uuid');
@@ -50,16 +50,17 @@ const loadMainWindow = () => {
     });
     mainWindow.loadFile(path.join(__dirname, '/src/index.html'));
 
-    ipcMain.on('save-and-close', async (event, arg) => {
-        // prevent empty files from being created
-        if (arg == '') return mainWindow.destroy();
-        fs.writeFile(filePath, arg);
-        // force destroy the window to prevent the "onbeforeunload" event from being emitted
-        mainWindow.destroy();
-    });
+    ipcMain.on('writeCsv', async (event, arg) => {
+        fs.appendFile(filePath, arg).catch(err => {
+            console.error(err);
+            dialog.showErrorBox(`Error: Can't write', 'Something went wrong with writing to the file:\n${err}\n\nIf you have it open please close it and try again`); 
+            return location.reload();
+        });
+    })
     ipcMain.on('genFilePath', async (event) => {
         filePath = await generateFilePath()
         event.reply('genFilePath-reply', filePath);
+
     })
 }
 

@@ -43,10 +43,3 @@ const locationSubmit = async () => {
     sessionStorage.setItem('location', locationElement.value); 
     renderAttendanceView();
 }
-
-window.onbeforeunload = () => {
-    // prevent window from closing
-    event.returnValue = false;
-    // ask the renderer process to save the data
-    electron.saveAndClose();
-}

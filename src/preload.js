@@ -48,41 +48,52 @@ const startConnection = (path) => {
             // return on error
             if (joinedData.error !== '') return alert(`The last card scanned failed with the following reason:\n${joinedData.error} \n\nPlease try again.`);
             joinedData.timestamp = new Date().toLocaleString();
+            
+            // write the csv header if it doesn't exist
+            if (formattedData.length == 0) {
+                let csvHeader = '"serialNumber","universityNumber","issueNumber","startDate","error","timestamp"';
+                ipcRenderer.send('writeCsv', csvHeader + '\n');
+            }
+            if (joinedData.serialNumber == formattedData[formattedData.length - 1]?.serialNumber && joinedData.universityNumber == formattedData[formattedData.length - 1]?.universityNumber) return;
+            let asCSV = Papa.unparse([joinedData], { quotes: true, header: false }) + '\n';
+            ipcRenderer.send('writeCsv', asCSV);
             formattedData.push(joinedData);
         }
-        if (formattedData.length > 1) {
-            // check if the current card scan is the same as the last card scanned (more efficient than comparing to all the other cards but may let some duplicate cards scans through)
-            if (formattedData[formattedData.length - 1].serialNumber == formattedData[formattedData.length - 2].serialNumber && formattedData[formattedData.length - 1].universityNumber == formattedData[formattedData.length - 2].universityNumber) {
-                formattedData.pop();
-            }
-        }
     });
-
 }
 
 const setupConnection =  async () => {
+    // Get a list of all the connected serial devices
     let serialPorts = await SerialPort.list();
     
+    // Check which ones are card readers based on manufacturer
     serialPorts.forEach((port) => {
         if (port.manufacturer == 'wch.cn') {
             cardReaders.push(port);
         }
     })
+
+    // If we found no card readers alert the user and prompt a page reload
     if (cardReaders.length == 0) {
         alert('We couldn\'t find any card readers\nAre there any plugged in?');
         return location.reload();
     }
+
+    // If there's only one reader, just start the connection
+    if (cardReaders.length == 1) {
+            startConnection(cardReaders[0].path)
+            return renderLocationView();
+    }
+
+    // If we did find card readers, add them to the drop-down 
     cardReaders.forEach((cardReader) => {
         const element = document.createElement('option');
         element.value = cardReader.path;
         element.innerText = cardReader.friendlyName;
         document.getElementById('usbSelector').appendChild(element);
     })
-    if (cardReaders.length == 1) { // UNCOMMENT LATER
-            startConnection(cardReaders[0].path)
-            return renderLocationView();
-    }
 
+    // If there's more than one reader, prompt the user to select one
     document.getElementById('usbSelectorButton').addEventListener(('click'), () => {
             let path = document.getElementById('usbSelector').value;
             if (path == '') {
@@ -106,12 +117,6 @@ contextBridge.exposeInMainWorld('electron', {
             });
         });
         return promise;
-    },
-    saveAndClose: () => {
-        // format the json data to csv data
-        let csv = Papa.unparse(formattedData, { quotes: true });
-        // send the csv data to the main process and request a window close
-        ipcRenderer.send('save-and-close', csv);
     },
 })
 
