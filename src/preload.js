@@ -156,6 +156,9 @@ const setupConnection =  async () => {
                 alert('Please select an option');
                 return setupConnection();
             }
+            if (path == 'mock') {
+                return renderLocationView();
+            }
             startConnection(path);
             return renderLocationView();
     })
