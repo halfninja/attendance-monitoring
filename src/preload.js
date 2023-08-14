@@ -8,15 +8,72 @@ let dataPair = [];
 let formattedData = [];
 let cardReaders = [];
 
+const genFilePath = () => {
+    ipcRenderer.send('genFilePath');
+    const promise = new Promise((resolve, reject) => {
+        ipcRenderer.on('genFilePath-reply', (event, args) => {
+            resolve(args)
+        });
+    });
+    return promise;
+};
+
+const renderAttendanceView = async () => {
+    const filePath = await genFilePath();
+    document.querySelector('#main').innerHTML = `
+        <div class="attendance-view">
+            <h1>Attendance Monitoring for ${sessionStorage.getItem('location')}</h1>
+            <h1>Data stored in ${filePath}</h1>
+            <div class="attendance-view_columns">
+            <div id="attendance-view_timestamp"><p>Timestamp</p></div>
+            <div id="attendance-view_universityId"><p>University ID</p></div>
+            <div id="attendance-view_issueNumber"><p>Issue Number</p></div>
+            <div id="attendance-view_serialNumber"><p>Serial Number</p></div>
+        </div>
+    `;
+    // every 500ms check if the data has changed and update if it has
+    setInterval(() => {
+        if (document.getElementById('attendance-view_timestamp').childElementCount - 1 !== formattedData.length) {
+            const timestampElement = document.createElement('p');
+            timestampElement.innerHTML = formattedData[formattedData.length - 1].timestamp;
+            document.getElementById('attendance-view_timestamp').appendChild(timestampElement);
+            const universityIdElement = document.createElement('p');
+            universityIdElement.innerHTML = formattedData[formattedData.length - 1].universityNumber;
+            document.getElementById('attendance-view_universityId').appendChild(universityIdElement);
+            const issueNumberElement = document.createElement('p');
+            issueNumberElement.innerHTML = formattedData[formattedData.length - 1].issueNumber;
+            document.getElementById('attendance-view_issueNumber').appendChild(issueNumberElement);
+            const serialNumberElement = document.createElement('p');
+            serialNumberElement.innerHTML = formattedData[formattedData.length - 1].serialNumber;
+            document.getElementById('attendance-view_serialNumber').appendChild(serialNumberElement);
+        }
+    }, 500);
+};
+
 const renderLocationView = () => {
     document.querySelector('#main').innerHTML = `
-        <form id="locationForm" onsubmit="event.preventDefault(); locationSubmit()">
+        <form id="locationForm">
             <input class="locationFormInput" type="text" id="locationInput" placeholder="Your Location...">
             <p id="inputError"></p>
             <input class="submitButton" type="submit" value="Continue">
         </form>
     `;
     document.getElementById('locationInput').focus();
+
+    document.getElementById('locationForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const locationElement = document.getElementById('locationInput');
+        if (locationElement.value == '') {
+            locationElement.animate({
+                translate: ['0px', '20px', '-20px', '0px'],
+                easing: ['ease-in-out'],
+            }, 500);
+            document.getElementById('inputError').innerText = 'Location must be at least one character.';
+            return;
+        }
+        sessionStorage.setItem('location', locationElement.value);
+        renderAttendanceView();
+    });
 };
 
 const startConnection = (path) => {
@@ -42,7 +99,7 @@ const startConnection = (path) => {
     
         // join the two json halves and push to formattedData array
         if (dataPair.length === 2) {
-            const joinedData = dataPair[0] + dataPair[1];
+            let joinedData = dataPair[0] + dataPair[1];
             dataPair = [];
             joinedData = JSON.parse(joinedData);
             // return on error
@@ -105,19 +162,11 @@ const setupConnection =  async () => {
     })
 };
 
+
 // give the main window access to the contextBridge
 contextBridge.exposeInMainWorld('electron', {
     formattedData: () => {return formattedData;},
     cardReaders: () => {return cardReaders},
-    genFilePath: () => {
-        ipcRenderer.send('genFilePath');
-        const promise = new Promise((resolve, reject) => {
-            ipcRenderer.on('genFilePath-reply', (event, args) => {
-                resolve(args)
-            });
-        });
-        return promise;
-    },
 })
 
 setupConnection();

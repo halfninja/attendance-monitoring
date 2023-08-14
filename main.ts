@@ -17,8 +17,8 @@ const generateFilePath = async () => {
     const minutes: number = date.getMinutes();
     let location: string;
 
-    mainWindow.webContents
-        .executeJavaScript('sessionStorage.getItem("location");', true)
+    await mainWindow.webContents
+        .executeJavaScript('sessionStorage.getItem("location");')
         .then(result => {location = result;});
     const fileName: string = `${day}-${month}-${year}-${hours}-${minutes}-${location}-${uuidv4()}.csv`;
     const filePath: string = path.join(saveLocation, fileName);
