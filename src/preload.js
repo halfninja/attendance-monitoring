@@ -130,10 +130,9 @@ const setupConnection =  async () => {
         }
     })
 
-    // If we found no card readers alert the user and prompt a page reload
+    // If we found no card readers alert the user 
     if (cardReaders.length == 0) {
         alert('We couldn\'t find any card readers\nAre there any plugged in?');
-        return location.reload();
     }
 
     // If there's only one reader, just start the connection
