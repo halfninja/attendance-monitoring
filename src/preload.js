@@ -101,7 +101,12 @@ const startConnection = (path) => {
         if (dataPair.length === 2) {
             let joinedData = dataPair[0] + dataPair[1];
             dataPair = [];
-            joinedData = JSON.parse(joinedData);
+            try {
+                joinedData = JSON.parse(joinedData);
+            } catch (err) {
+                console.error(err);
+                return alert(`The last card scanned failed with the following reason:\n${err} \n\nPlease try again.`);
+            }
             // return on error
             if (joinedData.error !== '') return alert(`The last card scanned failed with the following reason:\n${joinedData.error} \n\nPlease try again.`);
             joinedData.timestamp = new Date().toLocaleString();
