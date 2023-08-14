@@ -8,11 +8,14 @@
 </head>
 <body>
     <div id="main">
-        <select id="usbSelector">
-            <option value="">>Select a device<</option>
-            <option value="mock">Mock Reader</option>
-        </select>
-        <button id="usbSelectorButton">Continue</button>
+        <div class="usbInputParent">
+            <select id="usbSelector" class="usbInput">
+                <option value="">>Select a device<</option>
+                <option value="mock">Mock Reader</option>
+            </select>
+            <p id="inputError"></p>
+            <button id="usbSelectorButton" class="submitButton">Continue</button>
+        </div>
     </div>
 </body>
 </html>

@@ -2,7 +2,7 @@ body {
     font-family: Indie Flower;
 }
 
-#locationForm {
+#locationForm, .usbInputParent {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -13,7 +13,7 @@ body {
     justify-content: center;
     align-items: end;
 }
-.locationFormInput {
+.locationFormInput, .usbInput {
     width: 99%;
     border: 2px solid #000;
     transition: scale 0.2s;
@@ -26,7 +26,8 @@ body {
     background-color: transparent;
     border: 2px solid #000;
     box-shadow: 4px 4px 0px 1px rgba(0, 0, 0, 0.25);
-    width: 40%;
+    width: fit-content;
+    padding: 4px 4px;
     transition: box-shadow 0.2s;
 }
 .submitButton:hover {

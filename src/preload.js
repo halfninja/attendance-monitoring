@@ -153,7 +153,7 @@ const setupConnection =  async () => {
     document.getElementById('usbSelectorButton').addEventListener(('click'), () => {
             const path = document.getElementById('usbSelector').value;
             if (path == '') {
-                alert('Please select an option');
+                document.getElementById('inputError').innerText = 'Location must be at least one character.';
                 return setupConnection();
             }
             if (path == 'mock') {
