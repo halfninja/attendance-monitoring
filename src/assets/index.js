@@ -1,5 +1,5 @@
 const renderAttendanceView = async () => {
-    let filePath = await electron.genFilePath();
+    const filePath = await electron.genFilePath();
     document.querySelector('#main').innerHTML = `
         <div class="attendance-view">
             <h1>Attendance Monitoring for ${sessionStorage.getItem('location')}</h1>

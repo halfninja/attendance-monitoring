@@ -42,7 +42,7 @@ const startConnection = (path) => {
     
         // join the two json halves and push to formattedData array
         if (dataPair.length === 2) {
-            let joinedData = dataPair[0] + dataPair[1];
+            const joinedData = dataPair[0] + dataPair[1];
             dataPair = [];
             joinedData = JSON.parse(joinedData);
             // return on error
@@ -51,11 +51,11 @@ const startConnection = (path) => {
             
             // write the csv header if it doesn't exist
             if (formattedData.length == 0) {
-                let csvHeader = '"serialNumber","universityNumber","issueNumber","startDate","error","timestamp"';
+                const csvHeader = '"serialNumber","universityNumber","issueNumber","startDate","error","timestamp"';
                 ipcRenderer.send('writeCsv', csvHeader + '\n');
             }
             if (joinedData.serialNumber == formattedData[formattedData.length - 1]?.serialNumber && joinedData.universityNumber == formattedData[formattedData.length - 1]?.universityNumber) return;
-            let asCSV = Papa.unparse([joinedData], { quotes: true, header: false }) + '\n';
+            const asCSV = Papa.unparse([joinedData], { quotes: true, header: false }) + '\n';
             ipcRenderer.send('writeCsv', asCSV);
             formattedData.push(joinedData);
         }
@@ -64,7 +64,7 @@ const startConnection = (path) => {
 
 const setupConnection =  async () => {
     // Get a list of all the connected serial devices
-    let serialPorts = await SerialPort.list();
+    const serialPorts = await SerialPort.list();
     
     // Check which ones are card readers based on manufacturer
     serialPorts.forEach((port) => {
@@ -95,7 +95,7 @@ const setupConnection =  async () => {
 
     // If there's more than one reader, prompt the user to select one
     document.getElementById('usbSelectorButton').addEventListener(('click'), () => {
-            let path = document.getElementById('usbSelector').value;
+            const path = document.getElementById('usbSelector').value;
             if (path == '') {
                 alert('Please select an option');
                 return setupConnection();
