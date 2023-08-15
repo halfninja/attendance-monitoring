@@ -19,6 +19,26 @@ const genFilePath = () => {
     return promise;
 };
 
+const handleData = (data: CardData) => {
+    // return on error
+    if (data.error !== '') return alert(`The last card scanned failed with the following reason:\n${data.error} \n\nPlease try again.`);
+    data.timestamp = new Date().toLocaleString();
+    
+    // write the csv header to the file if it doesn't exist
+    if (formattedData.length == 0) {
+        const csvHeader = '"serialNumber","universityNumber","issueNumber","startDate","error","timestamp"';
+        ipcRenderer.send('writeCsv', csvHeader + '\n');
+    }
+    // compare the serial number and university number to the last entry in the array, if they are the same data (prevents rapid duplicate entries)
+    if (data.serialNumber == formattedData[formattedData.length - 1]?.serialNumber && data.universityNumber == formattedData[formattedData.length - 1]?.universityNumber) return;
+
+    // convert the json to csv and write to the file
+    const asCSV: string = unparse([data], { quotes: true, header: false }) + '\n';  // example of data: "d477747c","4109496","04","26/05/22","","27/06/1987 12:00:00"
+    ipcRenderer.send('writeCsv', asCSV);
+    // push the data to the array for other functions to use
+    formattedData.push(data);
+};
+
 const renderAttendanceView = async () => {
     const filePath: PathLike = await genFilePath();
     document.querySelector('#main').innerHTML = `
@@ -32,6 +52,40 @@ const renderAttendanceView = async () => {
             <div id="attendance-view_serialNumber"><p>Serial Number</p></div>
         </div>
     `;
+
+    // if mock data is enabled, add a form to inject mock data
+    if (sessionStorage.getItem('mock') == 'true') {
+        const element = document.createElement('form');
+        element.innerHTML = `
+            <input type="text" id="timestampInput" placeholder="Timestamp...">
+            <input type="text" id="universityIdInput" placeholder="University ID...">
+            <input type="text" id="issueNumberInput" placeholder="Issue Number...">
+            <input type="text" id="serialNumberInput" placeholder="Serial Number...">
+            <input type="text" id="errorInput" placeholder="Error...">
+            <input type="submit" value="Inject Mock Data">
+        `;
+        document.querySelector('.attendance-view').appendChild(element);
+
+        element.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const timestampElement = document.getElementById('timestampInput') as HTMLInputElement;
+            const universityIdElement = document.getElementById('universityIdInput') as HTMLInputElement;
+            const issueNumberElement = document.getElementById('issueNumberInput') as HTMLInputElement;
+            const serialNumberElement = document.getElementById('serialNumberInput') as HTMLInputElement;
+            const errorElement = document.getElementById('errorInput') as HTMLInputElement;
+
+            const data: CardData = {
+                timestamp: timestampElement.value,
+                universityNumber: universityIdElement.value,
+                issueNumber: issueNumberElement.value,
+                serialNumber: serialNumberElement.value,
+                error: errorElement.value,
+            };
+
+            handleData(data);
+        });
+    }
+
     // every 500ms check if the data has changed and update if it has
     setInterval(() => {
         if (document.getElementById('attendance-view_timestamp').childElementCount - 1 !== formattedData.length) {
@@ -114,23 +168,8 @@ const startConnection = (path: string) => {
                 console.error(err);
                 return alert(`The last card scanned failed with the following reason:\n${err} \n\nPlease try again.`);
             }
-            // return on error
-            if (parsedJoinedData.error !== '') return alert(`The last card scanned failed with the following reason:\n${parsedJoinedData.error} \n\nPlease try again.`);
-            parsedJoinedData.timestamp = new Date().toLocaleString();
-            
-            // write the csv header to the file if it doesn't exist
-            if (formattedData.length == 0) {
-                const csvHeader = '"serialNumber","universityNumber","issueNumber","startDate","error","timestamp"';
-                ipcRenderer.send('writeCsv', csvHeader + '\n');
-            }
-            // compare the serial number and university number to the last entry in the array, if they are the same return (prevents rapid duplicate entries)
-            if (parsedJoinedData.serialNumber == formattedData[formattedData.length - 1]?.serialNumber && parsedJoinedData.universityNumber == formattedData[formattedData.length - 1]?.universityNumber) return;
 
-            // convert the json to csv and write to the file
-            const asCSV: string = unparse([parsedJoinedData], { quotes: true, header: false }) + '\n';  // example of data: "d477747c","4109496","04","26/05/22","","27/06/1987 12:00:00"
-            ipcRenderer.send('writeCsv', asCSV);
-            // push the data to the array for other functions to use
-            formattedData.push(parsedJoinedData);
+            handleData(parsedJoinedData);
         }
     });
 }
@@ -174,6 +213,7 @@ const setupConnection =  async () => {
             return setupConnection();
         }
         if (path == 'mock') {
+            sessionStorage.setItem('mock', 'true');
             return renderLocationView();
         }
         startConnection(path);
