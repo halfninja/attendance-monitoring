@@ -6,6 +6,7 @@ import * as fs from 'fs-extra';
 import { CardData } from "./types";
 import { unparse } from "papaparse";
 
+let filePath;
 
 // Generate file path
 export const generateFilePath = async () => {
@@ -22,7 +23,7 @@ export const generateFilePath = async () => {
     return filePath;
 }
 
-export const appendCSVFile = async (data: string, filePath: string) => {
+export const appendCSVFile = async (data: string) => {
     fs.appendFile(filePath, data).catch(err => {
         console.error(err);
         dialog.showErrorBox('Error: Can\'t write', `Something went wrong with writing to the file:\n${err}\n\nIf you have it open please close it and try again`);
@@ -31,7 +32,7 @@ export const appendCSVFile = async (data: string, filePath: string) => {
 
 }
 
-export const handleData = (data: CardData, formattedData: Array<CardData>, filePath: string) => {
+export const handleData = (data: CardData, formattedData: Array<CardData>) => {
     // return on error
     if (data.error !== '') return alert(`The last card scanned failed with the following reason:\n${data.error} \n\nPlease try again.`);
     data.timestamp = new Date().toLocaleString();
@@ -39,20 +40,20 @@ export const handleData = (data: CardData, formattedData: Array<CardData>, fileP
     // write the csv header to the file if it doesn't exist
     if (formattedData.length == 0) {
         const csvHeader = '"serialNumber","universityNumber","issueNumber","startDate","error","timestamp"';
-        appendCSVFile(csvHeader + '\n', filePath);
+        appendCSVFile(csvHeader + '\n');
     }
     // compare the serial number and university number to the last entry in the array, if they are the same data (prevents rapid duplicate entries)
     if (data.serialNumber == formattedData[formattedData.length - 1]?.serialNumber && data.universityNumber == formattedData[formattedData.length - 1]?.universityNumber) return;
 
     // convert the json to csv and write to the file
     const asCSV: string = unparse([data], { quotes: true, header: false });  // example of data: "d477747c","4109496","04","26/05/22","","27/06/1987 12:00:00"
-    appendCSVFile(asCSV + '\n', filePath);
+    appendCSVFile(asCSV + '\n');
     // push the data to the array for other functions to use
     formattedData.push(data);
 };
 
 
-export const renderAttendanceView = async (filePath: string, formattedData: Array<CardData>) => {
+export const renderAttendanceView = async (formattedData: Array<CardData>) => {
     document.querySelector('#main').innerHTML = `
         <div class="attendance-view">
             <h1>Attendance Monitoring for ${sessionStorage.getItem('location')}</h1>
@@ -94,7 +95,7 @@ export const renderAttendanceView = async (filePath: string, formattedData: Arra
                 error: errorElement.value,
             };
 
-            handleData(data, formattedData, filePath);
+            handleData(data, formattedData);
         });
     }
 
@@ -115,4 +116,31 @@ export const renderAttendanceView = async (filePath: string, formattedData: Arra
             document.getElementById('attendance-view_serialNumber').appendChild(serialNumberElement);
         }
     }, 500);
+};
+
+export const renderLocationView = (formattedData: Array<CardData>) => {
+    document.querySelector('#main').innerHTML = `
+        <form id="locationForm">
+            <input class="locationFormInput" type="text" id="locationInput" placeholder="Your Location...">
+            <p id="inputError"></p>
+            <input class="submitButton" type="submit" value="Continue">
+        </form>
+    `;
+    document.getElementById('locationInput').focus();
+
+    document.getElementById('locationForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const locationElement = document.getElementById('locationInput') as HTMLInputElement;
+        if (locationElement.value == '') {
+            locationElement.animate({
+                translate: ['0px', '20px', '-20px', '0px'],
+                easing: ['ease-in-out'],
+            }, 500);
+            document.getElementById('inputError').innerText = 'Location must be at least one character.';
+            return;
+        }
+        sessionStorage.setItem('location', locationElement.value);
+        filePath = await generateFilePath();
+        renderAttendanceView(formattedData);
+    });
 };

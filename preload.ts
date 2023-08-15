@@ -1,40 +1,13 @@
 import { CardData } from './types';
 import { contextBridge } from 'electron';
 import { SerialPort } from 'serialport';
-import { generateFilePath, handleData, renderAttendanceView } from "./modules";
+import { handleData, renderLocationView } from "./modules";
 
 let filePath: string;
 let dataPair: Array<string> = [];
 let formattedData: Array<CardData> = [];
 // @ts-ignore
 let cardReaders: Array<PortInfo> = [];
-
-const renderLocationView = () => {
-    document.querySelector('#main').innerHTML = `
-        <form id="locationForm">
-            <input class="locationFormInput" type="text" id="locationInput" placeholder="Your Location...">
-            <p id="inputError"></p>
-            <input class="submitButton" type="submit" value="Continue">
-        </form>
-    `;
-    document.getElementById('locationInput').focus();
-
-    document.getElementById('locationForm').addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const locationElement = document.getElementById('locationInput') as HTMLInputElement;
-        if (locationElement.value == '') {
-            locationElement.animate({
-                translate: ['0px', '20px', '-20px', '0px'],
-                easing: ['ease-in-out'],
-            }, 500);
-            document.getElementById('inputError').innerText = 'Location must be at least one character.';
-            return;
-        }
-        sessionStorage.setItem('location', locationElement.value);
-        filePath = await generateFilePath();
-        renderAttendanceView(filePath, formattedData);
-    });
-};
 
 const startConnection = (path: string) => {
     // Create the serial port
@@ -74,7 +47,7 @@ const startConnection = (path: string) => {
                 return alert(`The last card scanned failed with the following reason:\n${err} \n\nPlease try again.`);
             }
 
-            handleData(parsedJoinedData, formattedData, filePath);
+            handleData(parsedJoinedData, formattedData);
         }
     });
 }
@@ -98,7 +71,7 @@ const setupConnection =  async () => {
     // If there's only one reader, just start the connection
     if (cardReaders.length == 1) {
             startConnection(cardReaders[0].path)
-            return renderLocationView();
+            return renderLocationView(formattedData);
     }
 
     // If we did find card readers, add them to the drop-down 
@@ -119,10 +92,10 @@ const setupConnection =  async () => {
         }
         if (path == 'mock') {
             sessionStorage.setItem('mock', 'true');
-            return renderLocationView();
+            return renderLocationView(formattedData);
         }
         startConnection(path);
-        return renderLocationView();
+        return renderLocationView(formattedData);
     })
 };
 
