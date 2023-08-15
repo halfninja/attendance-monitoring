@@ -1,16 +1,17 @@
-const { ipcRenderer, contextBridge } = require('electron')
-const { SerialPort } = require('serialport');
-const Papa = require('papaparse');
+import { PathLike } from "fs-extra";
+import { CardData } from './types';
+import { ipcRenderer, contextBridge, SerialPortRevokedDetails } from 'electron';
+import { SerialPort } from 'serialport';
+import { unparse } from 'papaparse';
 
-sessionStorage.clear();
-
-let dataPair = [];
-let formattedData = [];
-let cardReaders = [];
+let dataPair: Array<string> = [];
+let formattedData: Array<CardData> = [];
+// @ts-ignore
+let cardReaders: Array<PortInfo> = [];
 
 const genFilePath = () => {
     ipcRenderer.send('genFilePath');
-    const promise = new Promise((resolve, reject) => {
+    const promise: Promise<PathLike> = new Promise((resolve, reject) => {
         ipcRenderer.on('genFilePath-reply', (event, args) => {
             resolve(args)
         });
@@ -19,7 +20,7 @@ const genFilePath = () => {
 };
 
 const renderAttendanceView = async () => {
-    const filePath = await genFilePath();
+    const filePath: PathLike = await genFilePath();
     document.querySelector('#main').innerHTML = `
         <div class="attendance-view">
             <h1>Attendance Monitoring for ${sessionStorage.getItem('location')}</h1>
@@ -62,7 +63,7 @@ const renderLocationView = () => {
 
     document.getElementById('locationForm').addEventListener('submit', (event) => {
         event.preventDefault();
-        const locationElement = document.getElementById('locationInput');
+        const locationElement = document.getElementById('locationInput') as HTMLInputElement;
         if (locationElement.value == '') {
             locationElement.animate({
                 translate: ['0px', '20px', '-20px', '0px'],
@@ -76,7 +77,7 @@ const renderLocationView = () => {
     });
 };
 
-const startConnection = (path) => {
+const startConnection = (path: string) => {
     // Create the serial port
     const port = new SerialPort({
         path: path,
@@ -88,8 +89,8 @@ const startConnection = (path) => {
         return location.reload();
     })    
     
-    port.on('data', (data) => {
-        data = data.toString();
+    port.on('data', (data: string) => {
+        data = data.toString(); //! remove if everything works to test if we can run without
         if (sessionStorage.getItem('location') == null) return;
         if (!data.includes('{') && !data.includes('}')) return;
         // prevents weird error that drove me insane :)
@@ -99,27 +100,28 @@ const startConnection = (path) => {
     
         // join the two json halves and push to formattedData array
         if (dataPair.length === 2) {
-            let joinedData = dataPair[0] + dataPair[1];
+            let JoinedData: string = dataPair[0] + dataPair[1];
+            let parsedJoinedData: CardData = JSON.parse(JoinedData);
             dataPair = [];
             try {
-                joinedData = JSON.parse(joinedData);
+                parsedJoinedData = JSON.parse(JoinedData);
             } catch (err) {
                 console.error(err);
                 return alert(`The last card scanned failed with the following reason:\n${err} \n\nPlease try again.`);
             }
             // return on error
-            if (joinedData.error !== '') return alert(`The last card scanned failed with the following reason:\n${joinedData.error} \n\nPlease try again.`);
-            joinedData.timestamp = new Date().toLocaleString();
+            if (parsedJoinedData.error !== '') return alert(`The last card scanned failed with the following reason:\n${parsedJoinedData.error} \n\nPlease try again.`);
+            parsedJoinedData.timestamp = new Date().toLocaleString();
             
             // write the csv header if it doesn't exist
             if (formattedData.length == 0) {
                 const csvHeader = '"serialNumber","universityNumber","issueNumber","startDate","error","timestamp"';
                 ipcRenderer.send('writeCsv', csvHeader + '\n');
             }
-            if (joinedData.serialNumber == formattedData[formattedData.length - 1]?.serialNumber && joinedData.universityNumber == formattedData[formattedData.length - 1]?.universityNumber) return;
-            const asCSV = Papa.unparse([joinedData], { quotes: true, header: false }) + '\n';
+            if (parsedJoinedData.serialNumber == formattedData[formattedData.length - 1]?.serialNumber && parsedJoinedData.universityNumber == formattedData[formattedData.length - 1]?.universityNumber) return;
+            const asCSV: string = unparse([parsedJoinedData], { quotes: true, header: false }) + '\n';
             ipcRenderer.send('writeCsv', asCSV);
-            formattedData.push(joinedData);
+            formattedData.push(parsedJoinedData);
         }
     });
 }
@@ -156,16 +158,17 @@ const setupConnection =  async () => {
 
     // If there's more than one reader, prompt the user to select one
     document.getElementById('usbSelectorButton').addEventListener(('click'), () => {
-            const path = document.getElementById('usbSelector').value;
-            if (path == '') {
-                document.getElementById('inputError').innerText = 'Location must be at least one character.';
-                return setupConnection();
-            }
-            if (path == 'mock') {
-                return renderLocationView();
-            }
-            startConnection(path);
+        const element = document.getElementById('usbSelector') as HTMLInputElement;
+        const path: string = element.value;
+        if (path == '') {
+            document.getElementById('inputError').innerText = 'Location must be at least one character.';
+            return setupConnection();
+        }
+        if (path == 'mock') {
             return renderLocationView();
+        }
+        startConnection(path);
+        return renderLocationView();
     })
 };
 

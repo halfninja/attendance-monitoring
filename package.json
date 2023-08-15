@@ -5,13 +5,15 @@
   "main": "./dist/main.js",
   "type": "commonjs",
   "scripts": {
-    "transpile": "rm -Rf dist/* && tsc && cp -R src/ dist/",
+    "transpile": "rm -Rf dist/* && cp -R src/ dist/ && tsc",
     "start": "npm run transpile && electron-forge start",
     "build": "npm run transpile && electron-forge make --platform=win32 --dir=dist --out=out/"
   },
   "author": "Saturn Maoudis",
   "license": "GPL-3.0",
   "dependencies": {
+    "@types/papaparse": "^5.3.7",
+    "@types/serialport": "^8.0.2",
     "fs-extra": "^11.1.1",
     "papaparse": "^5.4.1",
     "serialport": "^11.0.1",

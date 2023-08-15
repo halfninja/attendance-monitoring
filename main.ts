@@ -41,7 +41,7 @@ const loadMainWindow = () => {
             contextIsolation: true,
             nodeIntegration: true,
             devTools: !app.isPackaged,
-            preload: path.join(__dirname, '/src/preload.js'),
+            preload: path.join(__dirname, '/preload.js'),
         },
     });
     mainWindow.loadFile(path.join(__dirname, '/src/index.html'));
