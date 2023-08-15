@@ -61,6 +61,7 @@ const renderAttendanceView = async () => {
             <input type="text" id="universityIdInput" placeholder="University ID...">
             <input type="text" id="issueNumberInput" placeholder="Issue Number...">
             <input type="text" id="serialNumberInput" placeholder="Serial Number...">
+            <input type="text" id="startDateInput" placeholder="Start Date...">
             <input type="text" id="errorInput" placeholder="Error...">
             <input type="submit" value="Inject Mock Data">
         `;
@@ -72,14 +73,16 @@ const renderAttendanceView = async () => {
             const universityIdElement = document.getElementById('universityIdInput') as HTMLInputElement;
             const issueNumberElement = document.getElementById('issueNumberInput') as HTMLInputElement;
             const serialNumberElement = document.getElementById('serialNumberInput') as HTMLInputElement;
+            const startDateElement = document.getElementById('startDateInput') as HTMLInputElement;
             const errorElement = document.getElementById('errorInput') as HTMLInputElement;
 
             const data: CardData = {
-                timestamp: timestampElement.value,
+                serialNumber: serialNumberElement.value,
                 universityNumber: universityIdElement.value,
                 issueNumber: issueNumberElement.value,
-                serialNumber: serialNumberElement.value,
+                startDate: startDateElement.value,
                 error: errorElement.value,
+                timestamp: timestampElement.value,
             };
 
             handleData(data);
