@@ -50,3 +50,69 @@ export const handleData = (data: CardData, formattedData: Array<CardData>, fileP
     // push the data to the array for other functions to use
     formattedData.push(data);
 };
+
+
+export const renderAttendanceView = async (filePath: string, formattedData: Array<CardData>) => {
+    document.querySelector('#main').innerHTML = `
+        <div class="attendance-view">
+            <h1>Attendance Monitoring for ${sessionStorage.getItem('location')}</h1>
+            <h1>Data stored in ${filePath}</h1>
+            <div class="attendance-view_columns">
+            <div id="attendance-view_timestamp"><p>Timestamp</p></div>
+            <div id="attendance-view_universityId"><p>University ID</p></div>
+            <div id="attendance-view_issueNumber"><p>Issue Number</p></div>
+            <div id="attendance-view_serialNumber"><p>Serial Number</p></div>
+        </div>
+    `;
+
+    // if mock data is enabled, add a form to inject mock data
+    if (sessionStorage.getItem('mock') == 'true') {
+        const element = document.createElement('form');
+        element.innerHTML = `
+            <input type="text" id="timestampInput" placeholder="Timestamp...">
+            <input type="text" id="universityIdInput" placeholder="University ID...">
+            <input type="text" id="issueNumberInput" placeholder="Issue Number...">
+            <input type="text" id="serialNumberInput" placeholder="Serial Number...">
+            <input type="text" id="errorInput" placeholder="Error...">
+            <input type="submit" value="Inject Mock Data">
+        `;
+        document.querySelector('.attendance-view').appendChild(element);
+
+        element.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const timestampElement = document.getElementById('timestampInput') as HTMLInputElement;
+            const universityIdElement = document.getElementById('universityIdInput') as HTMLInputElement;
+            const issueNumberElement = document.getElementById('issueNumberInput') as HTMLInputElement;
+            const serialNumberElement = document.getElementById('serialNumberInput') as HTMLInputElement;
+            const errorElement = document.getElementById('errorInput') as HTMLInputElement;
+
+            const data: CardData = {
+                timestamp: timestampElement.value,
+                universityNumber: universityIdElement.value,
+                issueNumber: issueNumberElement.value,
+                serialNumber: serialNumberElement.value,
+                error: errorElement.value,
+            };
+
+            handleData(data, formattedData, filePath);
+        });
+    }
+
+    // every 500ms check if the data has changed and update if it has
+    setInterval(() => {
+        if (document.getElementById('attendance-view_timestamp').childElementCount - 1 !== formattedData.length) {
+            const timestampElement = document.createElement('p');
+            timestampElement.innerHTML = formattedData[formattedData.length - 1].timestamp;
+            document.getElementById('attendance-view_timestamp').appendChild(timestampElement);
+            const universityIdElement = document.createElement('p');
+            universityIdElement.innerHTML = formattedData[formattedData.length - 1].universityNumber;
+            document.getElementById('attendance-view_universityId').appendChild(universityIdElement);
+            const issueNumberElement = document.createElement('p');
+            issueNumberElement.innerHTML = formattedData[formattedData.length - 1].issueNumber;
+            document.getElementById('attendance-view_issueNumber').appendChild(issueNumberElement);
+            const serialNumberElement = document.createElement('p');
+            serialNumberElement.innerHTML = formattedData[formattedData.length - 1].serialNumber;
+            document.getElementById('attendance-view_serialNumber').appendChild(serialNumberElement);
+        }
+    }, 500);
+};
