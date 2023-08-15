@@ -90,7 +90,8 @@ const startConnection = (path: string) => {
     })    
     
     port.on('data', (data: string) => {
-        data = data.toString(); //! remove if everything works to test if we can run without
+        // example of data: {"serialNumber":"d477747c","universityNumber":"4109496","is. Looks like either the first or second half of a json object
+
         if (sessionStorage.getItem('location') == null) return;
         if (!data.includes('{') && !data.includes('}')) return;
         // prevents weird error that drove me insane :)
@@ -100,9 +101,13 @@ const startConnection = (path: string) => {
     
         // join the two json halves and push to formattedData array
         if (dataPair.length === 2) {
-            let JoinedData: string = dataPair[0] + dataPair[1];
-            let parsedJoinedData: CardData = JSON.parse(JoinedData);
+            // join the two halves 
+            let JoinedData: string = dataPair[0] + dataPair[1]; // example of data: '{"serialNumber":"d477747c","universityNumber":"4109496","issueNumber":"04","startDate":""26/05/22"","error":""}'
+            let parsedJoinedData: CardData;
+
+            // reset the data pair
             dataPair = [];
+            // attempt to parse the data, if it fails it means the halves weren't json and will return
             try {
                 parsedJoinedData = JSON.parse(JoinedData);
             } catch (err) {
@@ -113,14 +118,18 @@ const startConnection = (path: string) => {
             if (parsedJoinedData.error !== '') return alert(`The last card scanned failed with the following reason:\n${parsedJoinedData.error} \n\nPlease try again.`);
             parsedJoinedData.timestamp = new Date().toLocaleString();
             
-            // write the csv header if it doesn't exist
+            // write the csv header to the file if it doesn't exist
             if (formattedData.length == 0) {
                 const csvHeader = '"serialNumber","universityNumber","issueNumber","startDate","error","timestamp"';
                 ipcRenderer.send('writeCsv', csvHeader + '\n');
             }
+            // compare the serial number and university number to the last entry in the array, if they are the same return (prevents rapid duplicate entries)
             if (parsedJoinedData.serialNumber == formattedData[formattedData.length - 1]?.serialNumber && parsedJoinedData.universityNumber == formattedData[formattedData.length - 1]?.universityNumber) return;
-            const asCSV: string = unparse([parsedJoinedData], { quotes: true, header: false }) + '\n';
+
+            // convert the json to csv and write to the file
+            const asCSV: string = unparse([parsedJoinedData], { quotes: true, header: false }) + '\n';  // example of data: "d477747c","4109496","04","26/05/22","","27/06/1987 12:00:00"
             ipcRenderer.send('writeCsv', asCSV);
+            // push the data to the array for other functions to use
             formattedData.push(parsedJoinedData);
         }
     });
