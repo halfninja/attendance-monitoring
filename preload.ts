@@ -1,9 +1,7 @@
-import { PathLike } from "fs-extra";
 import { CardData } from './types';
-import { ipcRenderer, contextBridge, SerialPortRevokedDetails } from 'electron';
+import { contextBridge } from 'electron';
 import { SerialPort } from 'serialport';
-import { unparse } from 'papaparse';
-import { generateFilePath, appendCSVFile } from "./modules";
+import { generateFilePath, handleData } from "./modules";
 
 let filePath: string;
 let dataPair: Array<string> = [];
@@ -11,26 +9,6 @@ let formattedData: Array<CardData> = [];
 // @ts-ignore
 let cardReaders: Array<PortInfo> = [];
 
-const handleData = (data: CardData) => {
-    // return on error
-    if (data.error !== '') return alert(`The last card scanned failed with the following reason:\n${data.error} \n\nPlease try again.`);
-    data.timestamp = new Date().toLocaleString();
-    
-    // write the csv header to the file if it doesn't exist
-    if (formattedData.length == 0) {
-        const csvHeader = '"serialNumber","universityNumber","issueNumber","startDate","error","timestamp"';
-        ipcRenderer.send('writeCsv', csvHeader + '\n');
-        appendCSVFile(csvHeader + '\n', filePath);
-    }
-    // compare the serial number and university number to the last entry in the array, if they are the same data (prevents rapid duplicate entries)
-    if (data.serialNumber == formattedData[formattedData.length - 1]?.serialNumber && data.universityNumber == formattedData[formattedData.length - 1]?.universityNumber) return;
-
-    // convert the json to csv and write to the file
-    const asCSV: string = unparse([data], { quotes: true, header: false });  // example of data: "d477747c","4109496","04","26/05/22","","27/06/1987 12:00:00"
-    appendCSVFile(asCSV + '\n', filePath);
-    // push the data to the array for other functions to use
-    formattedData.push(data);
-};
 
 const renderAttendanceView = async () => {
     filePath = await generateFilePath();
@@ -75,7 +53,7 @@ const renderAttendanceView = async () => {
                 error: errorElement.value,
             };
 
-            handleData(data);
+            handleData(data, formattedData, filePath);
         });
     }
 
@@ -162,7 +140,7 @@ const startConnection = (path: string) => {
                 return alert(`The last card scanned failed with the following reason:\n${err} \n\nPlease try again.`);
             }
 
-            handleData(parsedJoinedData);
+            handleData(parsedJoinedData, formattedData, filePath);
         }
     });
 }
