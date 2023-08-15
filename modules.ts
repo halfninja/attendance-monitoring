@@ -6,7 +6,7 @@ import * as fs from 'fs-extra';
 import { CardData } from "./types";
 import { unparse } from "papaparse";
 
-let filePath;
+let filePath: string;
 
 // Generate file path
 export const generateFilePath = async () => {
