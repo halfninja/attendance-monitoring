@@ -3,21 +3,13 @@ import { CardData } from './types';
 import { ipcRenderer, contextBridge, SerialPortRevokedDetails } from 'electron';
 import { SerialPort } from 'serialport';
 import { unparse } from 'papaparse';
+import { generateFilePath, appendCSVFile } from "./modules";
 
+let filePath: string;
 let dataPair: Array<string> = [];
 let formattedData: Array<CardData> = [];
 // @ts-ignore
 let cardReaders: Array<PortInfo> = [];
-
-const genFilePath = () => {
-    ipcRenderer.send('genFilePath');
-    const promise: Promise<PathLike> = new Promise((resolve, reject) => {
-        ipcRenderer.on('genFilePath-reply', (event, args) => {
-            resolve(args)
-        });
-    });
-    return promise;
-};
 
 const handleData = (data: CardData) => {
     // return on error
@@ -28,19 +20,20 @@ const handleData = (data: CardData) => {
     if (formattedData.length == 0) {
         const csvHeader = '"serialNumber","universityNumber","issueNumber","startDate","error","timestamp"';
         ipcRenderer.send('writeCsv', csvHeader + '\n');
+        appendCSVFile(csvHeader + '\n', filePath);
     }
     // compare the serial number and university number to the last entry in the array, if they are the same data (prevents rapid duplicate entries)
     if (data.serialNumber == formattedData[formattedData.length - 1]?.serialNumber && data.universityNumber == formattedData[formattedData.length - 1]?.universityNumber) return;
 
     // convert the json to csv and write to the file
-    const asCSV: string = unparse([data], { quotes: true, header: false }) + '\n';  // example of data: "d477747c","4109496","04","26/05/22","","27/06/1987 12:00:00"
-    ipcRenderer.send('writeCsv', asCSV);
+    const asCSV: string = unparse([data], { quotes: true, header: false });  // example of data: "d477747c","4109496","04","26/05/22","","27/06/1987 12:00:00"
+    appendCSVFile(asCSV + '\n', filePath);
     // push the data to the array for other functions to use
     formattedData.push(data);
 };
 
 const renderAttendanceView = async () => {
-    const filePath: PathLike = await genFilePath();
+    filePath = await generateFilePath();
     document.querySelector('#main').innerHTML = `
         <div class="attendance-view">
             <h1>Attendance Monitoring for ${sessionStorage.getItem('location')}</h1>
