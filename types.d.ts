@@ -1,7 +1,8 @@
 export type CardData = {
-    timestamp: string;
+    serialNumber: string;
     universityNumber: string;
     issueNumber: string;
-    serialNumber: string;
+    startDate: string;
     error: string | null;
+    timestamp: string;
 };
