@@ -28,7 +28,7 @@ export const generateFilePath = async () => {
 
 export const appendCSVFile = async (data: string, formattedDataLength: number) => {
     // write the csv header to the file if it doesn't exist
-    if (formattedDataLength == 1) {
+    if (formattedDataLength === 1) {
         const csvHeader = '"serialNumber","universityNumber","issueNumber","startDate","error","timestamp"';
         appendFile(window.sessionStorage.getItem('filePath'), csvHeader + '\n').catch(err => {
             console.error(err);
@@ -45,13 +45,14 @@ export const appendCSVFile = async (data: string, formattedDataLength: number) =
     return true;
 }
 
-export const handleData = (data: CardData, formattedData: Array<CardData>) => {
+export const handleData = (data: CardData, formattedData: CardData[]) => {
     // return on error
     if (data.error !== '') return alert(`The last card scanned failed with the following reason:\n${data.error}\n\nPlease try again.`);
     data.timestamp = new Date().toLocaleString();
-    
+
+    const previousData = formattedData.at(-1);
     // compare the serial number and university number to the last entry in the array, if they are the same data (prevents rapid duplicate entries)
-    if (data.serialNumber == formattedData[formattedData.length - 1]?.serialNumber && data.universityNumber == formattedData[formattedData.length - 1]?.universityNumber) return;
+    if (data.serialNumber === previousData?.serialNumber && data.universityNumber === previousData?.universityNumber) return;
 
     // convert the json to csv and write to the file
     const asCSV: string = unparse([data], { quotes: true, header: false });  // example of data: "d477747c","4109496","04","26/05/22","","27/06/1987 12:00:00"
@@ -76,7 +77,7 @@ const renderAttendanceView = async (formattedData: Array<CardData>) => {
     `;
 
     // if mock data is enabled, add a form to inject mock data
-    if (window.sessionStorage.getItem('mock') == 'true') {
+    if (window.sessionStorage.getItem('mock') === 'true') {
         const element = document.createElement('form');
         element.innerHTML = `
             <input type="text" id="timestampInput" placeholder="Timestamp...">
@@ -110,18 +111,19 @@ const renderAttendanceView = async (formattedData: Array<CardData>) => {
 
     // every 500ms check if the data has changed and update if it has
     setInterval(() => {
+        const previousData = formattedData.at(-1);
         if (document.getElementById('attendance-view_timestamp')!.childElementCount - 1 !== formattedData.length) {
             const timestampElement = document.createElement('p');
-            timestampElement.innerHTML = formattedData[formattedData.length - 1].timestamp;
+            timestampElement.innerHTML = previousData.timestamp;
             document.getElementById('attendance-view_timestamp')!.appendChild(timestampElement);
             const universityIdElement = document.createElement('p');
-            universityIdElement.innerHTML = formattedData[formattedData.length - 1].universityNumber;
+            universityIdElement.innerHTML = previousData.universityNumber;
             document.getElementById('attendance-view_universityId')!.appendChild(universityIdElement);
             const issueNumberElement = document.createElement('p');
-            issueNumberElement.innerHTML = formattedData[formattedData.length - 1].issueNumber;
+            issueNumberElement.innerHTML = previousData.issueNumber;
             document.getElementById('attendance-view_issueNumber')!.appendChild(issueNumberElement);
             const serialNumberElement = document.createElement('p');
-            serialNumberElement.innerHTML = formattedData[formattedData.length - 1].serialNumber;
+            serialNumberElement.innerHTML = previousData.serialNumber;
             document.getElementById('attendance-view_serialNumber')!.appendChild(serialNumberElement);
         }
     }, 500);
@@ -140,7 +142,7 @@ const renderLocationView = (formattedData: Array<CardData>) => {
     document.getElementById('locationForm')!.addEventListener('submit', async (event) => {
         event.preventDefault();
         const locationElement = document.getElementById('locationInput') as HTMLInputElement;
-        if (locationElement.value == '') {
+        if (locationElement.value === '') {
             locationElement.animate({
                 translate: ['0px', '20px', '-20px', '0px'],
                 easing: ['ease-in-out'],
@@ -170,7 +172,7 @@ export const startConnection = (path: string) => {
     port.on('data', (data: string) => {
         // example of data: {"serialNumber":"d477747c","universityNumber":"4109496","is. Looks like either the first or second half of a json object
 
-        if (sessionStorage.getItem('location') == null) return;
+        if (sessionStorage.getItem('location') === null) return;
         if (!data.includes('{') && !data.includes('}')) return;
         // prevents weird error that drove me insane :)
         if (data.includes('SW_CPU_RESET')) return dataPair = [];
@@ -204,18 +206,18 @@ export const setupConnection =  async () => {
     
     // Check which ones are card readers based on manufacturer
     serialPorts.forEach((port) => {
-        if (port.manufacturer == 'wch.cn') {
+        if (port.manufacturer === 'wch.cn') {
             cardReaders.push(port);
         }
     })
 
     // If we found no card readers alert the user 
-    if (cardReaders.length == 0) {
+    if (cardReaders.length === 0) {
         window.alert('We couldn\'t find any card readers\nAre there any plugged in?');
     }
 
     // If there's only one reader, just start the connection
-    if (cardReaders.length == 1) {
+    if (cardReaders.length === 1) {
             startConnection(cardReaders[0].path)
             return renderLocationView(formattedData);
     }
@@ -232,10 +234,10 @@ export const setupConnection =  async () => {
     document.getElementById('usbSelectorButton')!.addEventListener(('click'), () => {
         const element = document.getElementById('usbSelector') as HTMLInputElement;
         const path: string = element.value;
-        if (path == '') {
+        if (path === '') {
             document.getElementById('inputError')!.innerText = 'Location must be at least one character.';
             return setupConnection();
-        } else if (path == 'mock') {
+        } else if (path === 'mock') {
             sessionStorage.setItem('mock', 'true');
         } else {
             startConnection(path);

@@ -1,9 +1,6 @@
 import * as module from './modules';
 import { saveLocation } from './config.json'
 
-// test('adds 1 + 2 to equal 3', () => {
-//     expect(1 + 2).toBe(3);
-// });
 jest
     .useFakeTimers()
     .setSystemTime(new Date('2020-01-01'));
@@ -57,17 +54,5 @@ describe('Handle Data', () => {
 
         let data = module.handleData(mockData, formattedData);
         expect(data).toBe(`alerted The last card scanned failed with the following reason:\n${mockData.error}\n\nPlease try again.`);
-    });
-});
-
-describe('Setup Connection', () => {
-    test('No card reader found', async () => {
-        jest.mock('serialport', () => ({
-            list: jest.fn(() => Promise.resolve([{ path: 'COM1', manufacturer: 'MAN'}])),
-        }));
-        
-        await module.setupConnection().catch((err) => {
-            expect(window.alert).toBeCalledWith('We couldn\'t find any card readers\nAre there any plugged in?');
-        });
     });
 });

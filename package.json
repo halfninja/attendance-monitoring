@@ -6,7 +6,7 @@
   "type": "commonjs",
   "scripts": {
     "transpile": "node move.trans.js && tsc",
-    "start": "npm run transpile && electron-forge start",
+    "start": "npm run test && npm run transpile && electron-forge start",
     "build": "npm run transpile && electron-forge make --platform=win32 --dir=dist --out=out/",
     "test": "jest"
   },
