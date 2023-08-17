@@ -11,7 +11,15 @@ export let formattedData: Array<CardData> = [];
 // @ts-ignore
 export let cardReaders: Array<PortInfo> = [];
 
-// Generate file path
+/**
+ * Generates a file path for the csv file
+ * @returns {Promise<string>} The file path
+ * @async
+ * @example
+ * const filePath = await generateFilePath();
+ * console.log(filePath);
+ * // D:\Network\Drive\26-5-2021-12-0-Location-UUID.csv
+ */
 export const generateFilePath = async () => {
     const date: Date = new Date();
     const day: number = date.getDate();
@@ -26,6 +34,19 @@ export const generateFilePath = async () => {
     return filePath;
 }
 
+/**
+ * Appends the data to the csv file
+ * @param {string} data The data to append to the file
+ * @param {number} formattedDataLength The length of the formatted data array
+ * @returns {Promise<boolean>} Whether the data was successfully appended to the file
+ * @async
+ * @example
+ * const data = '"d477747c","4109496","04","26/05/22","","27/06/1987 12:00:00"';
+ * const formattedDataLength = 1;
+ * const success = await appendCSVFile(data, formattedDataLength);
+ * console.log(success);
+ * // true
+ */
 export const appendCSVFile = async (data: string, formattedDataLength: number) => {
     // write the csv header to the file if it doesn't exist
     if (formattedDataLength === 1) {
@@ -45,6 +66,34 @@ export const appendCSVFile = async (data: string, formattedDataLength: number) =
     return true;
 }
 
+/**
+ * Handles the processed data from the card reader
+ * @param {CardData} data The data to handle
+ * @param {CardData[]} formattedData The formatted data array
+ * @returns {void}
+ * @example
+ * const data = {
+ *    serialNumber: 'd477747c',
+ *   universityNumber: '4109496',
+ *   issueNumber: '04',
+ *  startDate: '26/05/22',
+ * error: '',
+ * timestamp: '27/06/1987 12:00:00'
+ * };
+ * const formattedData = [];
+ * handleData(data, formattedData);
+ * console.log(formattedData);
+ * // [{
+ * //    serialNumber: 'd477747c',
+ * //    universityNumber: '4109496',
+ * //    issueNumber: '04',
+ * //    startDate: '26/05/22',
+ * //    error: '',
+ * //    timestamp: '27/06/1987 12:00:00'
+ * // }]
+ * console.log(asCSV);
+ * // "d477747c","4109496","04","26/05/22","","27/06/1987 12:00:00"
+ */
 export const handleData = (data: CardData, formattedData: CardData[]) => {
     // return on error
     if (data.error !== '') return alert(`The last card scanned failed with the following reason:\n${data.error}\n\nPlease try again.`);
@@ -62,7 +111,12 @@ export const handleData = (data: CardData, formattedData: CardData[]) => {
     return appendCSVFile(asCSV + '\n', formattedData.length);
 };
 
-
+/**
+ * Renders the attendance view
+ * @param {CardData[]} formattedData The formatted data array
+ * @returns {Promise<void>}
+ * @async
+ */
 const renderAttendanceView = async (formattedData: Array<CardData>) => {
     document.querySelector('#main')!.innerHTML = `
         <div class="attendance-view">
@@ -129,6 +183,13 @@ const renderAttendanceView = async (formattedData: Array<CardData>) => {
     }, 500);
 };
 
+
+/** 
+ * Renders the location view
+ * @param {CardData[]} formattedData The formatted data array
+ * @returns {Promise<void>}
+ * @async
+ */
 const renderLocationView = (formattedData: Array<CardData>) => {
     document.querySelector('#main')!.innerHTML = `
         <form id="locationForm">
@@ -157,6 +218,12 @@ const renderLocationView = (formattedData: Array<CardData>) => {
     });
 };
 
+/** 
+ * Starts the connection with the reader (via serialport)
+ * @param {string} path The path to the reader
+ * @returns {void}
+ * @async
+ */
 export const startConnection = (path: string) => {
     // Create the serial port
     const port = new SerialPort({
@@ -200,6 +267,14 @@ export const startConnection = (path: string) => {
     });
 }
 
+/** 
+ * Sets up the connection with the reader 
+ * Lets the user select the reader
+ * Automatically selects if there's only one
+ * Alerts the user if there's none
+ * @returns {void}
+ * @async
+ */
 export const setupConnection =  async () => {
     // Get a list of all the connected serial devices
     const serialPorts = await SerialPort.list();
