@@ -152,11 +152,12 @@ const renderAttendanceView = async (formattedData: Array<CardData>) => {
             const errorElement = document.getElementById('errorInput') as HTMLInputElement;
 
             const data: CardData = {
-                timestamp: timestampElement.value,
+                serialNumber: serialNumberElement.value,
                 universityNumber: universityIdElement.value,
                 issueNumber: issueNumberElement.value,
-                serialNumber: serialNumberElement.value,
+                startDate: '',
                 error: errorElement.value,
+                timestamp: timestampElement.value,
             };
 
             handleData(data, formattedData);

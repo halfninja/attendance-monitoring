@@ -30,6 +30,7 @@ describe('Handle Data', () => {
             serialNumber: '123456789',
             universityNumber: '123456789',
             issueNumber: '123456789',
+            startDate: '123456789',
             error: '',
             timestamp: null,
         };
@@ -39,6 +40,7 @@ describe('Handle Data', () => {
             serialNumber: '123456789',
             universityNumber: '123456789',
             issueNumber: '123456789',
+            startDate: '123456789',
             error: '',
             timestamp: '01/01/2020, 00:00:00',
         }]);
@@ -49,6 +51,7 @@ describe('Handle Data', () => {
             serialNumber: '123456789',
             universityNumber: '123456789',
             issueNumber: '123456789',
+            startDate: '123456789',
             error: 'This is an error',
             timestamp: null,
         };
