@@ -19,7 +19,8 @@ window.alert = jest.fn((message) => { return `alerted ${message}` });
 test('Generate File Path', async () => {
     window.sessionStorage.setItem('location', 'test');
     let filePath = await module.generateFilePath();
-    expect(filePath).toBe(`${saveLocation}\\1-1-2020-0-0-test-00000000-0000-0000-0000-000000000000.csv`);
+    filePath = filePath.replace(/\\/g, '/');
+    expect(filePath).toBe(`${saveLocation}/1-1-2020-0-0-test-00000000-0000-0000-0000-000000000000.csv`);
 });
 
 describe('Handle Data', () => {
