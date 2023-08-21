@@ -21,7 +21,6 @@ export let cardReaders: Array<PortInfo> = [];
  * // D:\Network\Drive\26-5-2021-12-0-Location-UUID.csv
  */
 export const generateFilePath = async () => {
-    console.log('generateFilePath');
     const date: Date = new Date();
     const day: number = date.getDate();
     const month: number = date.getMonth() + 1;
@@ -49,7 +48,6 @@ export const generateFilePath = async () => {
  * // true
  */
 export const appendCSVFile = async (data: string, formattedDataLength: number) => {
-    console.log(`appendCSVFile(${data}, ${formattedDataLength})`);
     // write the csv header to the file if it doesn't exist
     if (!await pathExists(window.sessionStorage.getItem('filePath'))) {
         const csvHeader = '"serialNumber","universityNumber","issueNumber","startDate","error","timestamp"';
@@ -98,7 +96,6 @@ export const appendCSVFile = async (data: string, formattedDataLength: number) =
  * // "d477747c","4109496","04","26/05/22","","27/06/1987 12:00:00"
  */
 export const handleData = (data: CardData, formattedData: CardData[]) => {
-    console.log(`handleData(${data}, ${formattedData})`);
     // return on error
     if (data.error !== '') return alert(`The last card scanned failed with the following reason:\n${data.error}\n\nPlease try again.`);
     data.timestamp = new Date().toLocaleString();
@@ -117,7 +114,6 @@ export const handleData = (data: CardData, formattedData: CardData[]) => {
 };
 
 const updateAttendanceView = (data: CardData) => {
-    console.log(`updateAttendanceView(${data})`);
     const timestampElement = document.createElement('p');
     timestampElement.innerHTML = data.timestamp;
     document.getElementById('attendance-view_timestamp')!.appendChild(timestampElement);
@@ -139,7 +135,6 @@ const updateAttendanceView = (data: CardData) => {
  * @async
  */
 const renderAttendanceView = async (formattedData: CardData[]) => {
-    console.log(`renderAttendanceView(${formattedData})`);
     document.querySelector('#main')!.innerHTML = `
         <div class="attendance-view">
             <h1>Attendance Monitoring for ${window.sessionStorage.getItem('location')}</h1>
@@ -194,7 +189,6 @@ const renderAttendanceView = async (formattedData: CardData[]) => {
  * @async
  */
 const renderLocationView = (formattedData: Array<CardData>) => {
-    console.log(`renderLocationView(${formattedData})`);
     document.querySelector('#main')!.innerHTML = `
         <form id="locationForm">
             <input class="locationFormInput" type="text" id="locationInput" placeholder="Your Location...">
@@ -229,7 +223,6 @@ const renderLocationView = (formattedData: Array<CardData>) => {
  * @async
  */
 export const startConnection = (path: string) => {
-    console.log(`startConnection(${path})`);
     // Create the serial port
     const port = new SerialPort({
         path: path,
@@ -282,7 +275,6 @@ export const startConnection = (path: string) => {
  * @async
  */
 export const setupConnection =  async () => {
-    console.log('setupConnection()');
     // Get a list of all the connected serial devices
     const serialPorts = await SerialPort.list();
     
