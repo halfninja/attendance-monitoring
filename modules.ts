@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { saveLocation } from './config.json';
-import { appendFile } from 'fs-extra';
+import { appendFile, pathExists } from 'fs-extra';
 import { CardData } from "./types";
 import { unparse } from "papaparse";
 import { SerialPort } from 'serialport';
@@ -21,6 +21,7 @@ export let cardReaders: Array<PortInfo> = [];
  * // D:\Network\Drive\26-5-2021-12-0-Location-UUID.csv
  */
 export const generateFilePath = async () => {
+    console.log('generateFilePath');
     const date: Date = new Date();
     const day: number = date.getDate();
     const month: number = date.getMonth() + 1;
@@ -48,8 +49,9 @@ export const generateFilePath = async () => {
  * // true
  */
 export const appendCSVFile = async (data: string, formattedDataLength: number) => {
+    console.log(`appendCSVFile(${data}, ${formattedDataLength})`);
     // write the csv header to the file if it doesn't exist
-    if (formattedDataLength === 1) {
+    if (!await pathExists(window.sessionStorage.getItem('filePath'))) {
         const csvHeader = '"serialNumber","universityNumber","issueNumber","startDate","error","timestamp"';
         appendFile(window.sessionStorage.getItem('filePath'), csvHeader + '\n').catch(err => {
             console.error(err);
@@ -57,6 +59,7 @@ export const appendCSVFile = async (data: string, formattedDataLength: number) =
             return window.location.reload();
         });
     }
+
     // write the data to the file
     appendFile(window.sessionStorage.getItem('filePath'), data).catch(err => {
         console.error(err);
@@ -95,6 +98,7 @@ export const appendCSVFile = async (data: string, formattedDataLength: number) =
  * // "d477747c","4109496","04","26/05/22","","27/06/1987 12:00:00"
  */
 export const handleData = (data: CardData, formattedData: CardData[]) => {
+    console.log(`handleData(${data}, ${formattedData})`);
     // return on error
     if (data.error !== '') return alert(`The last card scanned failed with the following reason:\n${data.error}\n\nPlease try again.`);
     data.timestamp = new Date().toLocaleString();
@@ -108,8 +112,25 @@ export const handleData = (data: CardData, formattedData: CardData[]) => {
     // push the data to the array for other functions to use
     formattedData.push(data);
 
+    updateAttendanceView(data);
     return appendCSVFile(asCSV + '\n', formattedData.length);
 };
+
+const updateAttendanceView = (data: CardData) => {
+    console.log(`updateAttendanceView(${data})`);
+    const timestampElement = document.createElement('p');
+    timestampElement.innerHTML = data.timestamp;
+    document.getElementById('attendance-view_timestamp')!.appendChild(timestampElement);
+    const universityIdElement = document.createElement('p');
+    universityIdElement.innerHTML = data.universityNumber;
+    document.getElementById('attendance-view_universityId')!.appendChild(universityIdElement);
+    const issueNumberElement = document.createElement('p');
+    issueNumberElement.innerHTML = data.issueNumber;
+    document.getElementById('attendance-view_issueNumber')!.appendChild(issueNumberElement);
+    const serialNumberElement = document.createElement('p');
+    serialNumberElement.innerHTML = data.serialNumber;
+    document.getElementById('attendance-view_serialNumber')!.appendChild(serialNumberElement);
+}
 
 /**
  * Renders the attendance view
@@ -117,7 +138,8 @@ export const handleData = (data: CardData, formattedData: CardData[]) => {
  * @returns {Promise<void>}
  * @async
  */
-const renderAttendanceView = async (formattedData: Array<CardData>) => {
+const renderAttendanceView = async (formattedData: CardData[]) => {
+    console.log(`renderAttendanceView(${formattedData})`);
     document.querySelector('#main')!.innerHTML = `
         <div class="attendance-view">
             <h1>Attendance Monitoring for ${window.sessionStorage.getItem('location')}</h1>
@@ -163,27 +185,7 @@ const renderAttendanceView = async (formattedData: Array<CardData>) => {
             handleData(data, formattedData);
         });
     }
-
-    // every 500ms check if the data has changed and update if it has
-    setInterval(() => {
-        const previousData = formattedData.at(-1);
-        if (document.getElementById('attendance-view_timestamp')!.childElementCount - 1 !== formattedData.length) {
-            const timestampElement = document.createElement('p');
-            timestampElement.innerHTML = previousData.timestamp;
-            document.getElementById('attendance-view_timestamp')!.appendChild(timestampElement);
-            const universityIdElement = document.createElement('p');
-            universityIdElement.innerHTML = previousData.universityNumber;
-            document.getElementById('attendance-view_universityId')!.appendChild(universityIdElement);
-            const issueNumberElement = document.createElement('p');
-            issueNumberElement.innerHTML = previousData.issueNumber;
-            document.getElementById('attendance-view_issueNumber')!.appendChild(issueNumberElement);
-            const serialNumberElement = document.createElement('p');
-            serialNumberElement.innerHTML = previousData.serialNumber;
-            document.getElementById('attendance-view_serialNumber')!.appendChild(serialNumberElement);
-        }
-    }, 500);
 };
-
 
 /** 
  * Renders the location view
@@ -192,6 +194,7 @@ const renderAttendanceView = async (formattedData: Array<CardData>) => {
  * @async
  */
 const renderLocationView = (formattedData: Array<CardData>) => {
+    console.log(`renderLocationView(${formattedData})`);
     document.querySelector('#main')!.innerHTML = `
         <form id="locationForm">
             <input class="locationFormInput" type="text" id="locationInput" placeholder="Your Location...">
@@ -226,6 +229,7 @@ const renderLocationView = (formattedData: Array<CardData>) => {
  * @async
  */
 export const startConnection = (path: string) => {
+    console.log(`startConnection(${path})`);
     // Create the serial port
     const port = new SerialPort({
         path: path,
@@ -238,6 +242,7 @@ export const startConnection = (path: string) => {
     })    
     
     port.on('data', (data: string) => {
+        console.log('data');
         // example of data: {"serialNumber":"d477747c","universityNumber":"4109496","is. Looks like either the first or second half of a json object
 
         if (sessionStorage.getItem('location') === null) return;
@@ -277,6 +282,7 @@ export const startConnection = (path: string) => {
  * @async
  */
 export const setupConnection =  async () => {
+    console.log('setupConnection()');
     // Get a list of all the connected serial devices
     const serialPorts = await SerialPort.list();
     
