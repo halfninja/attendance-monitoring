@@ -235,7 +235,6 @@ export const startConnection = (path: string) => {
     })    
     
     port.on('data', (data: string) => {
-        console.log('data');
         // example of data: {"serialNumber":"d477747c","universityNumber":"4109496","is. Looks like either the first or second half of a json object
 
         if (sessionStorage.getItem('location') === null) return;
