@@ -5,8 +5,9 @@ import { appendFile, pathExists } from 'fs-extra';
 import { CardData } from "./types";
 import { unparse } from "papaparse";
 import { SerialPort } from 'serialport';
+import { ReadlineParser } from "@serialport/parser-readline";
 
-let dataPair: Array<string> = [];
+
 export let formattedData: Array<CardData> = [];
 // @ts-ignore
 export let cardReaders: Array<PortInfo> = [];
@@ -232,36 +233,20 @@ export const startConnection = (path: string) => {
         console.error(err);
         alert(`Something went wrong with the reader:\n${err}\n\nPlease try again or select a different device`);
         return location.reload();
-    })    
-    
-    port.on('data', (data: string) => {
-        // example of data: {"serialNumber":"d477747c","universityNumber":"4109496","is. Looks like either the first or second half of a json object
+    });
 
-        if (sessionStorage.getItem('location') === null) return;
-        if (!data.includes('{') && !data.includes('}')) return;
-        // prevents weird error that drove me insane :)
-        if (data.includes('SW_CPU_RESET')) return dataPair = [];
-        
-        dataPair.push(data);
-    
-        // join the two json halves and push to formattedData array
-        if (dataPair.length === 2) {
-            // join the two halves 
-            let JoinedData: string = dataPair[0] + dataPair[1]; // example of data: '{"serialNumber":"d477747c","universityNumber":"4109496","issueNumber":"04","startDate":""26/05/22"","error":""}'
-            let parsedJoinedData: CardData;
-
-            // reset the data pair
-            dataPair = [];
-            // attempt to parse the data, if it fails it means the halves weren't json and will return
-            try {
-                parsedJoinedData = JSON.parse(JoinedData);
-            } catch (err) {
-                console.error(err);
-                return alert(`The last card scanned failed with the following reason:\n${err} \n\nPlease try again.`);
-            }
-
-            handleData(parsedJoinedData, formattedData);
-        }
+    const parser = new ReadlineParser()
+    port.pipe(parser);
+    parser.on('data', (data: string) => {
+        // example of data: {"serialNumber":"d477747c","universityNumber":"4109496","issueNumber":"1","startDate":"2021-03-15T12:00:00.000Z"}
+        if (!data.includes('{') && !data.includes('}')) return false;
+        let json = JSON.parse(data);
+        return handleData(json, formattedData);
+    });
+    parser.on('error', (err) => {
+        console.error(err);
+        alert(`Something went wrong with the reader:\n${err}\n\nPlease try again or select a different device`);
+        return location.reload();
     });
 }
 
