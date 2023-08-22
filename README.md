@@ -2,6 +2,9 @@
 
 make sure you change the save location in config.json
 
+Packaged: `resources/app/config.json`
+Development: `config.json`
+
 ```
 npm i
 npm run start
