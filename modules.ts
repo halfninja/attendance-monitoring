@@ -150,11 +150,11 @@ const renderAttendanceView = async (formattedData: CardData[]) => {
         <div class="attendance-view">
             <h1>Attendance Monitoring for ${window.sessionStorage.getItem('location')}</h1>
             <h1>Data stored in ${window.sessionStorage.getItem('filePath')}</h1>
-            <div class="attendance-view_columns">
-            <div id="attendance-view_timestamp"><p>Timestamp</p></div>
-            <div id="attendance-view_universityId"><p>University ID</p></div>
-            <div id="attendance-view_issueNumber"><p>Issue Number</p></div>
-            <div id="attendance-view_serialNumber"><p>Serial Number</p></div>
+            <div class="attendance-view_column-parent">
+            <div id="attendance-view_timestamp"><p class="attendance-view_column-header">Timestamp</p><p class="hidden">00000000000</p></div>
+            <div id="attendance-view_universityId"><p class="attendance-view_column-header">University ID</p><p class="hidden">000000</p></div>
+            <div id="attendance-view_issueNumber"><p class="attendance-view_column-header">Issue Number</p><p class="hidden">00</p></div>
+            <div id="attendance-view_serialNumber"><p class="attendance-view_column-header">Serial Number</p><p class="hidden">0000000</p></div>
         </div>
     `;
 
