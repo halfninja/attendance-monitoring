@@ -10,6 +10,7 @@ let dataPair: Array<string> = [];
 export let formattedData: Array<CardData> = [];
 // @ts-ignore
 export let cardReaders: Array<PortInfo> = [];
+let timeSinceDup: number;
 
 /**
  * Generates a file path for the csv file
@@ -102,7 +103,16 @@ export const handleData = (data: CardData, formattedData: CardData[]) => {
 
     const previousData = formattedData.at(-1);
     // compare the serial number and university number to the last entry in the array, if they are the same data (prevents rapid duplicate entries)
-    if (data.serialNumber === previousData?.serialNumber && data.universityNumber === previousData?.universityNumber) return;
+
+    if (data.serialNumber === previousData?.serialNumber && data.universityNumber === previousData?.universityNumber) {
+        if (timeSinceDup === undefined) timeSinceDup = Date.now();
+        let cooldown: boolean = Date.now() - timeSinceDup > 360;
+        if (!cooldown) {
+            timeSinceDup = Date.now();
+            return;
+        }
+        timeSinceDup = Date.now();
+    }
 
     // convert the json to csv and write to the file
     const asCSV: string = unparse([data], { quotes: true, header: false });  // example of data: "d477747c","4109496","04","26/05/22","","27/06/1987 12:00:00"
